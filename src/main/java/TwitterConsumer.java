@@ -26,9 +26,9 @@ public class TwitterConsumer {
                 public void onStatus(Status status) {
                     GeoLocation geo = status.getGeoLocation();
                     if(geo != null) {
-                        System.out.println(status.getLang() + " " + status.getGeoLocation().toString());
+                        System.out.println(status.getLang() + ": " + status.getText()+" ("+ status.getGeoLocation().getLatitude()+", "+status.getGeoLocation().getLongitude()+")");
                     } else {
-                        System.out.println(status.getLang() + " Location unknown.");
+                        System.out.println(status.getLang() + ": " + status.getText() + " (Location unknown)");
                     }
                 }
                 public void onDeletionNotice(StatusDeletionNotice statusDeletionNotice) {}
@@ -53,11 +53,9 @@ public class TwitterConsumer {
             TwitterStream twitterStream = new TwitterStreamFactory(cb.build()).getInstance();
             twitterStream.addListener(listener);
             twitterStream.filter(fq);
-            twitterStream.sample();
         } catch (FileNotFoundException e) {
             System.err.println("Unable to read access token from storage. Try regenerating it using the TwitterAuthorizer class.");
             e.printStackTrace();
-            return;
         }
 
     }
