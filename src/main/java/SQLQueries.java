@@ -17,8 +17,11 @@ public class SQLQueries {
 
     public static String sentimentUpdateStatement = "UPDATE tweets SET sentiment = ? WHERE id = ?";
 
-    public static void updateTweetSentiment(Tweet tweet, double sentiment, SQLConnection conn) {
-        
+    public static void updateTweetSentiment(Tweet tweet, double sentiment, SQLConnection conn) throws SQLException {
+        PreparedStatement stmt = conn.getConnection().prepareStatement(sentimentUpdateStatement);
+        stmt.setDouble(1, sentiment);
+        stmt.setInt(2,tweet.index);
+        stmt.execute();
     }
 
 }
