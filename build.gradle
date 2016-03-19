@@ -2,6 +2,7 @@ group 'edu.cwru.eecs435.project'
 version '1.0-SNAPSHOT'
 
 apply plugin: 'java'
+apply plugin: 'application'
 
 repositories {
     mavenCentral()
@@ -34,3 +35,4 @@ task authorize(type:JavaExec) {
     standardInput = System.in
     standardOutput = System.out
 }
+
