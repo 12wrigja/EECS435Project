@@ -12,12 +12,27 @@ dependencies {
     compile 'org.postgresql:postgresql:9.4.1208.jre7'
     compile 'org.twitter4j:twitter4j-stream:[4.0,)'
     compile 'org.twitter4j:twitter4j-async:[4.0,)'
+    compile 'edu.stanford.nlp:stanford-corenlp:3.6.0'
+    compile 'edu.stanford.nlp:stanford-corenlp:3.6.0:models-english'
     testCompile group: 'junit', name: 'junit', version: '4.11'
 }
 
-mainClassName = 'TwitterConsumer'
-
-run {
-    standardInput=System.in
-
+task sentiment(type:JavaExec) {
+    main = "TweetSentimentAnalyzer"
+    classpath = sourceSets.main.runtimeClasspath
+    standardOutput = System.out
 }
+
+task consume(type:JavaExec) {
+    main = "TwitterConsumer"
+    classpath = sourceSets.main.runtimeClasspath
+    standardOutput = System.out
+}
+
+task authorize(type:JavaExec) {
+    main = "TwitterAuthorizer"
+    classpath = sourceSets.main.runtimeClasspath
+    standardInput = System.in
+    standardOutput = System.out
+}
+
