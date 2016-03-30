@@ -1,5 +1,5 @@
-import java.sql.PreparedStatement;
 import java.sql.SQLException;
+import java.util.Date;
 
 /**
  * Created by james on 3/29/16.
@@ -13,21 +13,16 @@ public class SQLProducer {
             e.printStackTrace();
             return;
         }
-        PreparedStatement stmt;
-        try {
-            stmt = conn.getConnection().prepareStatement("insert into test (text) values (?)");
-        } catch (SQLException e) {
-            e.printStackTrace();
-            return;
-        }
         while(true){
             //Generate some random stuff maybe?
-            String text = "blah";
+            Date d = new Date();
+            String text = "blah "+d.getTime();
+            Tweet tw = new Tweet(d,text);
             try {
-                stmt.setString(1,text);
-                stmt.executeUpdate();
+                SQLQueries.insertRawTweet(tw,conn);
             } catch (SQLException e) {
                 e.printStackTrace();
+                return;
             }
             try {
                 Thread.sleep(10);
