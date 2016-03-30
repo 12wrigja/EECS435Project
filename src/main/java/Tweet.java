@@ -21,6 +21,11 @@ public class Tweet {
         content = text;
     }
 
+    public Tweet(Date date, String text, int id) {
+        this(date,text);
+        index = id;
+    }
+
 
 
 
