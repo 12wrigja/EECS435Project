@@ -36,3 +36,10 @@ task authorize(type:JavaExec) {
     standardOutput = System.out
 }
 
+task produceStuff(type:JavaExec) {
+    main = "SQLProducer"
+    classpath = sourceSets.main.runtimeClasspath
+    standardInput = System.in
+    standardOutput = System.out
+}
+
