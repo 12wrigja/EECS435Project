@@ -17,7 +17,7 @@ public class SQLQueries {
         stmt.execute();
     }
 
-    private static final String SENTIMENT_UPDATE_QUERY = "UPDATE tweets SET sentiment = ? where checked_out = true WHERE id = ?";
+    private static final String SENTIMENT_UPDATE_QUERY = "UPDATE tweets SET sentiment = ? where checked_out = true and id = ?";
 
     public static void updateTweetSentiment(Tweet tweet, SQLConnection conn) throws SQLException {
         PreparedStatement stmt = conn.getConnection().prepareStatement(SENTIMENT_UPDATE_QUERY);
@@ -28,7 +28,7 @@ public class SQLQueries {
 
     private static final String NO_SENTIMENT_QUERY = "SELECT * FROM tweets WHERE sentiment IS NULL and checked_out = false LIMIT ?";
 
-    private static final String UPDATE_CHECKOUT_STATUS = "UPDATE tweets SET checked_out = ? where id in (?) and checked_out = ?)";
+    private static final String UPDATE_CHECKOUT_STATUS = "UPDATE tweets SET checked_out = ? where id = ANY (?) and checked_out = ?";
 
     public static List<Tweet> extractUnprocessedTweets(int number, SQLConnection conn) throws SQLException {
         List<Tweet> tweets = new ArrayList<>();
@@ -49,13 +49,13 @@ public class SQLQueries {
         if(tweets.size() <= 0){
             return true;
         } else {
-            String ids = tweets.stream().map(t->t.index+"").collect(Collectors.joining(","));
+            Integer[] identifiers = tweets.stream().map(t->t.index).collect(Collectors.toList()).toArray(new Integer[tweets.size()]);
             try {
                 conn.getConnection().setAutoCommit(false);
                 PreparedStatement stmt = conn.getConnection().prepareStatement(UPDATE_CHECKOUT_STATUS);
                 stmt.setBoolean(1, checkedOut);
                 stmt.setBoolean(3, !checkedOut);
-                stmt.setString(2, ids);
+                stmt.setArray(2, conn.getConnection().createArrayOf("integer",identifiers));
                 int changed = stmt.executeUpdate();
                 boolean successfulCheckout = (changed == tweets.size());
                 if(!successfulCheckout){
@@ -66,6 +66,12 @@ public class SQLQueries {
                 conn.getConnection().setAutoCommit(true);
                 return successfulCheckout;
             }catch(SQLException e){
+                try {
+                    conn.getConnection().rollback();
+                    conn.getConnection().setAutoCommit(true);
+                } catch (SQLException e1) {
+                    e1.printStackTrace();
+                }
                 e.printStackTrace();
                 return false;
             }
