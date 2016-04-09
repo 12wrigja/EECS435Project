@@ -1,7 +1,6 @@
 group 'edu.cwru.eecs435.project'
 version '1.0-SNAPSHOT'
 
-apply plugin: 'java'
 apply plugin: 'application'
 
 repositories {
@@ -17,6 +16,8 @@ dependencies {
     testCompile group: 'junit', name: 'junit', version: '4.11'
 }
 
+mainClassName = 'SentimentAssigner'
+
 task sentiment(type:JavaExec) {
     main = "TweetSentimentAnalyzer"
     classpath = sourceSets.main.runtimeClasspath
@@ -31,6 +32,20 @@ task consume(type:JavaExec) {
 
 task authorize(type:JavaExec) {
     main = "TwitterAuthorizer"
+    classpath = sourceSets.main.runtimeClasspath
+    standardInput = System.in
+    standardOutput = System.out
+}
+
+task produceStuff(type:JavaExec) {
+    main = "SQLProducer"
+    classpath = sourceSets.main.runtimeClasspath
+    standardInput = System.in
+    standardOutput = System.out
+}
+
+task tagStuff(type:JavaExec) {
+    main = "SentimentAssigner"
     classpath = sourceSets.main.runtimeClasspath
     standardInput = System.in
     standardOutput = System.out

@@ -1,35 +1,38 @@
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * Created by Joseph on 3/18/2016.
  */
 public class SQLQueries {
 
-    public static String rawTweetInsert = "INSERT INTO tweets (text, dateCreated) values (?, ?)";
+    private static final String RAW_TWEET_INSERT_QUERY = "INSERT INTO tweets (text, dateCreated) values (?, ?)";
 
     public static void insertRawTweet(Tweet tweet, SQLConnection conn) throws SQLException {
-        PreparedStatement stmt = conn.getConnection().prepareStatement(rawTweetInsert);
+        PreparedStatement stmt = conn.getConnection().prepareStatement(RAW_TWEET_INSERT_QUERY);
         stmt.setString(1, tweet.content);
         stmt.setTimestamp(2, new Timestamp(tweet.dateCreated.getTime()));
         stmt.execute();
     }
 
-    public static String sentimentUpdateStatement = "UPDATE tweets SET sentiment = ? WHERE id = ?";
+    private static final String SENTIMENT_UPDATE_QUERY = "UPDATE tweets SET sentiment = ? where checked_out = true and id = ?";
 
     public static void updateTweetSentiment(Tweet tweet, SQLConnection conn) throws SQLException {
-        PreparedStatement stmt = conn.getConnection().prepareStatement(sentimentUpdateStatement);
+        PreparedStatement stmt = conn.getConnection().prepareStatement(SENTIMENT_UPDATE_QUERY);
         stmt.setDouble(1, tweet.sentiment);
         stmt.setInt(2,tweet.index);
         stmt.executeUpdate();
     }
 
-    public static String noSentimentStatement = "SELECT * FROM tweets WHERE sentiment IS NULL LIMIT ?";
+    private static final String NO_SENTIMENT_QUERY = "SELECT * FROM tweets WHERE sentiment IS NULL and checked_out = false LIMIT ?";
+
+    private static final String UPDATE_CHECKOUT_STATUS = "UPDATE tweets SET checked_out = ? where id = ANY (?) and checked_out = ?";
 
     public static List<Tweet> extractUnprocessedTweets(int number, SQLConnection conn) throws SQLException {
         List<Tweet> tweets = new ArrayList<>();
-        PreparedStatement stmt = conn.getConnection().prepareStatement(noSentimentStatement);
+        PreparedStatement stmt = conn.getConnection().prepareStatement(NO_SENTIMENT_QUERY);
         stmt.setInt(1, number);
         ResultSet results = stmt.executeQuery();
         while (results.next()) {
@@ -40,6 +43,39 @@ public class SQLQueries {
             tweets.add(tweet);
         }
         return tweets;
+    }
+
+    public static boolean setCheckoutOnTweets(List<Tweet> tweets, boolean checkedOut, SQLConnection conn){
+        if(tweets.size() <= 0){
+            return true;
+        } else {
+            Integer[] identifiers = tweets.stream().map(t->t.index).collect(Collectors.toList()).toArray(new Integer[tweets.size()]);
+            try {
+                conn.getConnection().setAutoCommit(false);
+                PreparedStatement stmt = conn.getConnection().prepareStatement(UPDATE_CHECKOUT_STATUS);
+                stmt.setBoolean(1, checkedOut);
+                stmt.setBoolean(3, !checkedOut);
+                stmt.setArray(2, conn.getConnection().createArrayOf("integer",identifiers));
+                int changed = stmt.executeUpdate();
+                boolean successfulCheckout = (changed == tweets.size());
+                if(!successfulCheckout){
+                    conn.getConnection().rollback();
+                } else {
+                    conn.getConnection().commit();
+                }
+                conn.getConnection().setAutoCommit(true);
+                return successfulCheckout;
+            }catch(SQLException e){
+                try {
+                    conn.getConnection().rollback();
+                    conn.getConnection().setAutoCommit(true);
+                } catch (SQLException e1) {
+                    e1.printStackTrace();
+                }
+                e.printStackTrace();
+                return false;
+            }
+        }
     }
 
 }
