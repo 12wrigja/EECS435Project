@@ -14,7 +14,7 @@ import java.util.Properties;
 public class SentimentAssigner {
 
     public static void main(String[] args) {
-        SQLConnection conn = new SQLConnection("vagrant", "vagrant", "vagrant");
+        SQLConnection conn = new SQLConnection("joseph", "joseph", "1234");
         try {
             conn.connect();
         } catch (SQLException e) {
@@ -49,19 +49,20 @@ public class SentimentAssigner {
                     for (CoreMap sentence : sentences) {
                         String sentiment = sentence
                                 .get(SentimentCoreAnnotations.SentimentClass.class);
-                        System.out.println(sentiment + "\t" + sentence);
+                        //System.out.println(sentiment + "\t" + sentence);
 
                         listOfSentiments[count] = sentiment;
                         count++;
                     }
                     tweet.sentiment = getSentimentWeight(listOfSentiments);
                     SQLQueries.updateTweetSentiment(tweet, conn);
-                    System.out.println("Sentiment added: " + tweet.index);
+                    //System.out.println("Sentiment added: " + tweet.index);
 
                 }
-                if(!SQLQueries.setCheckoutOnTweets(tweets,false,conn)){
+		//No longer needed as the update of the sentiment auto-checks them back in.
+                /*if(!SQLQueries.setCheckoutOnTweets(tweets,false,conn)){
                    System.err.println("Unable to re-check in tweets.");
-                }
+                }*/
                 System.out.println("Done");
             } catch (SQLException e) {
                 e.printStackTrace();

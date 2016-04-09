@@ -17,7 +17,7 @@ public class SQLQueries {
         stmt.execute();
     }
 
-    private static final String SENTIMENT_UPDATE_QUERY = "UPDATE tweets SET sentiment = ? where checked_out = true and id = ?";
+    private static final String SENTIMENT_UPDATE_QUERY = "UPDATE tweets SET sentiment = ?, checked_out = false where checked_out = true and id = ?";
 
     public static void updateTweetSentiment(Tweet tweet, SQLConnection conn) throws SQLException {
         PreparedStatement stmt = conn.getConnection().prepareStatement(SENTIMENT_UPDATE_QUERY);
@@ -26,7 +26,7 @@ public class SQLQueries {
         stmt.executeUpdate();
     }
 
-    private static final String NO_SENTIMENT_QUERY = "SELECT * FROM tweets WHERE sentiment IS NULL and checked_out = false LIMIT ?";
+    private static final String NO_SENTIMENT_QUERY = "SELECT * FROM tweets WHERE sentiment IS NULL and checked_out = false order by id asc LIMIT ?";
 
     private static final String UPDATE_CHECKOUT_STATUS = "UPDATE tweets SET checked_out = ? where id = ANY (?) and checked_out = ?";
 
